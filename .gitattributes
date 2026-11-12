@@ -1,0 +1,5 @@
+# Same line endings on every operating system, so scripts work after cloning on Windows.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary

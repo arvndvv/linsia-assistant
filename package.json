@@ -1,0 +1,45 @@
+{
+  "name": "assistant",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "tsx watch server/src/index.ts --dev",
+    "dev:web": "vite",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test server/test/assistant.test.ts",
+    "setup:voice": "node scripts/setup.mjs voice",
+    "setup:ocr": "node scripts/setup.mjs ocr",
+    "setup": "node scripts/setup.mjs",
+    "build": "vite build",
+    "setup:reminders": "node scripts/setup.mjs reminders",
+    "start": "vite build && tsx server/src/index.ts",
+    "autostart": "node scripts/autostart.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "express": "^5.3.0",
+    "multer": "^2.5.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.3.0",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "concurrently": "^10.0.7",
+    "tailwindcss": "^4.3.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

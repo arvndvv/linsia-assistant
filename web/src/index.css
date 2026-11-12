@@ -1,0 +1,421 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ink: #0b0d12;
+  --color-panel: #12151c;
+  --color-line: #232836;
+  --color-soft: #8b93a7;
+  --color-glow: #7c9cff;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-ink);
+  color: #e7eaf3;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The assistant's body. Markup in components/Presence.tsx. */
+.presence {
+  --gx: 0px;
+  --gy: 0px;
+  --level: 0;
+  --spin: 26s;
+  --comet: 5s;
+  --c1: #8be9ff;
+  --c2: #7c9cff;
+  --c3: #c084ff;
+  --eye: #e4f6ff;
+  flex: none;
+  overflow: visible;
+  animation: presence-float 6s ease-in-out infinite;
+  transition: width 0.5s ease, height 0.5s ease;
+}
+.presence-c1 { stop-color: var(--c1); transition: stop-color 0.6s; }
+.presence-c2 { stop-color: var(--c2); transition: stop-color 0.6s; }
+.presence-c3 { stop-color: var(--c3); transition: stop-color 0.6s; }
+
+.presence[data-typing] {
+  --gx: 0px !important;
+  --gy: 7px !important;
+}
+
+.presence-halo {
+  opacity: 0.5;
+  transform-origin: 100px 100px;
+  transition: opacity 0.4s;
+}
+
+.presence-orbits {
+  transform: translate(calc(var(--gx) * -0.3), calc(var(--gy) * -0.3));
+  transform-origin: 100px 100px;
+  transition: transform 0.3s ease-out;
+}
+.presence-orbit {
+  transform-origin: 100px 100px;
+}
+.presence-orbit-a {
+  animation: presence-precess var(--spin) linear infinite;
+}
+.presence-orbit-b {
+  animation: presence-precess var(--spin) linear infinite reverse;
+  animation-delay: -9s;
+}
+.presence-orbit ellipse {
+  fill: none;
+  stroke: url(#presence-rim);
+  stroke-width: 1;
+  opacity: 0.35;
+}
+.presence-orbit .presence-comet {
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 9 91;
+  opacity: 1;
+  filter: drop-shadow(0 0 4px var(--c1));
+  animation: presence-comet var(--comet) linear infinite;
+}
+.presence-orbit-b .presence-comet {
+  animation-delay: -2.2s;
+}
+
+.presence-gesture,
+.presence-posture {
+  transform-origin: 100px 100px;
+}
+.presence-posture {
+  transition: transform 0.5s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.presence-head {
+  transform: translate(calc(var(--gx) * 0.3), calc(var(--gy) * 0.3));
+  transition: transform 0.3s ease-out;
+}
+.presence-facet {
+  fill: var(--c2);
+  opacity: 0.1;
+  animation: presence-glint 4.2s ease-in-out infinite;
+}
+.presence-facet:nth-child(odd) {
+  fill: var(--c3);
+}
+.presence-edge {
+  fill: none;
+  stroke: url(#presence-rim);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px var(--c2));
+}
+.presence-edge-inner {
+  stroke-width: 1;
+  opacity: 0.5;
+  filter: none;
+}
+
+.presence-eyes {
+  transform: translate(calc(var(--gx) * 0.7), calc(var(--gy) * 0.7));
+  transition: transform 0.2s ease-out;
+}
+.presence-glance {
+  animation: presence-glance 23s ease-in-out infinite;
+}
+.presence-eye-l,
+.presence-eye-r {
+  transform-origin: center;
+  transform-box: fill-box;
+  transition: transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.presence-eye {
+  fill: var(--eye);
+  stroke: var(--eye);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 7px var(--c1));
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: presence-blink 5.5s infinite;
+  transition: opacity 0.2s;
+}
+.presence-smile-eye {
+  fill: none;
+  stroke: var(--eye);
+  stroke-width: 5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 7px var(--c1));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.presence-voice rect {
+  fill: url(#presence-rim);
+  opacity: 0;
+  transform-origin: 50% 100%;
+  transform-box: fill-box;
+  transition: opacity 0.25s;
+}
+
+/* ---------- what it is doing ---------- */
+
+/* Listening: ring follows the microphone, eyes open wide, cool green. */
+.presence[data-state='listening'] {
+  --c1: #7dffd4;
+  --c2: #4fd1c5;
+  --c3: #7c9cff;
+}
+.presence[data-state='listening'] .presence-voice rect {
+  opacity: 0.95;
+  transform: scaleY(calc(0.35 + var(--level) * var(--k) * 3.2));
+  transition: transform 0.08s linear, opacity 0.25s;
+}
+.presence[data-state='listening'] .presence-eye-l,
+.presence[data-state='listening'] .presence-eye-r {
+  transform: scale(1.18);
+}
+.presence[data-state='listening'] .presence-halo {
+  opacity: calc(0.5 + var(--level) * 0.5);
+}
+
+/* Ripples spread outward while it listens, faster and brighter once it hears a voice. */
+.presence-ripple {
+  fill: none;
+  stroke: var(--c1);
+  stroke-width: 1.5;
+  opacity: 0;
+  transform-origin: 100px 100px;
+}
+.presence[data-state='listening'] .presence-ripple {
+  animation: presence-ripple 2.4s ease-out infinite;
+}
+.presence[data-state='listening'] .presence-ripple-b {
+  animation-delay: -1.2s;
+}
+.presence[data-state='listening'][data-hearing] .presence-ripple {
+  animation-duration: 1s;
+  stroke-width: 2.5;
+}
+.presence[data-state='listening'][data-hearing] .presence-ripple-b {
+  animation-delay: -0.5s;
+}
+.presence[data-state='listening'] .presence-posture {
+  transform: translateY(-2px) scale(calc(1.03 + var(--level) * 0.08));
+}
+.presence[data-state='listening'] .presence-glance {
+  animation: none;
+}
+
+/* Thinking: orbits spin up, facets shimmer, eyes narrow and scan. */
+.presence[data-state='thinking'] {
+  --spin: 3.2s;
+  --comet: 0.9s;
+}
+.presence[data-state='thinking'] .presence-halo {
+  animation: presence-pulse 1.2s ease-in-out infinite;
+}
+.presence[data-state='thinking'] .presence-facet {
+  animation-duration: 0.9s;
+}
+.presence[data-state='thinking'] .presence-glance {
+  animation: presence-scan 1.8s ease-in-out infinite;
+}
+.presence[data-state='thinking'] .presence-eye {
+  animation: none;
+  transform: scaleY(0.4);
+}
+
+/* Speaking: a ring of voice bars around the head, brighter halo. */
+.presence[data-state='speaking'] .presence-halo {
+  opacity: 0.9;
+}
+.presence[data-state='speaking'] .presence-voice rect {
+  opacity: 0.95;
+  animation: presence-talk 0.42s ease-in-out infinite alternate;
+}
+
+/* ---------- how it feels ---------- */
+
+/* Happy: eyes curve into smiles, sits up, glows. */
+.presence[data-mood='happy'] .presence-eye { opacity: 0; }
+.presence[data-mood='happy'] .presence-smile-eye { opacity: 1; }
+.presence[data-mood='happy'] .presence-posture { transform: translateY(-3px) scale(1.04); }
+.presence[data-mood='happy'] .presence-halo { opacity: 0.8; }
+
+/* Sorry: colour drains, head sinks, eyes droop outward. */
+.presence[data-mood='sorry'] {
+  --c1: #9db4c8;
+  --c2: #7686ad;
+  --c3: #8d86b8;
+  --eye: #c3cfe0;
+  --spin: 40s;
+}
+.presence[data-mood='sorry'] .presence-posture { transform: translateY(6px) scale(0.96); }
+.presence[data-mood='sorry'] .presence-eye-l { transform: rotate(-22deg) scaleY(0.7); }
+.presence[data-mood='sorry'] .presence-eye-r { transform: rotate(22deg) scaleY(0.7); }
+.presence[data-mood='sorry'] .presence-halo { opacity: 0.25; }
+
+/* Curious: head cocks to one side, one eye bigger than the other. */
+.presence[data-mood='curious'] .presence-posture { transform: rotate(-9deg); }
+.presence[data-mood='curious'] .presence-eye-l { transform: scale(0.85); }
+.presence[data-mood='curious'] .presence-eye-r { transform: scale(1.25); }
+
+/* Alert: turns amber, orbits quicken, eyes sharpen. */
+.presence[data-mood='alert'] {
+  --c1: #ffe08a;
+  --c2: #ff9f43;
+  --c3: #ff6b6b;
+  --eye: #fff3d6;
+  --spin: 9s;
+  --comet: 2s;
+}
+.presence[data-mood='alert'] .presence-eye-l { transform: rotate(14deg) scaleX(0.85); }
+.presence[data-mood='alert'] .presence-eye-r { transform: rotate(-14deg) scaleX(0.85); }
+.presence[data-mood='alert'] .presence-halo { animation: presence-pulse 1.6s ease-in-out infinite; }
+
+/* Surprised: eyes pop, orbits fling outward. */
+.presence[data-mood='surprised'] .presence-eye-l,
+.presence[data-mood='surprised'] .presence-eye-r { transform: scale(1.4); }
+.presence[data-mood='surprised'] .presence-posture { transform: translateY(-5px) scale(1.06); }
+.presence[data-mood='surprised'] .presence-orbits { transform: scale(1.12); }
+
+/* Sleepy: eyes nearly shut, everything slows and dims. */
+.presence[data-mood='sleepy'] {
+  --spin: 70s;
+  --comet: 14s;
+  animation-duration: 11s;
+}
+.presence[data-mood='sleepy'] .presence-eye { animation: none; transform: scaleY(0.14); }
+.presence[data-mood='sleepy'] .presence-posture { transform: translateY(5px) rotate(5deg); }
+.presence[data-mood='sleepy'] .presence-halo { opacity: 0.22; }
+.presence[data-mood='sleepy'] .presence-glance { animation: none; }
+
+/* ---------- one-off gestures ---------- */
+.presence-g-nod { animation: presence-nod 0.7s ease-in-out; }
+.presence-g-shake { animation: presence-shake 0.6s ease-in-out; }
+.presence-g-bounce { animation: presence-bounce 0.7s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.presence-g-tilt { animation: presence-tilt 0.8s ease-in-out; }
+.presence-g-perk { animation: presence-perk 0.45s ease-out; }
+
+@keyframes presence-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3%); }
+}
+@keyframes presence-precess {
+  from { transform: rotate(28deg); }
+  to { transform: rotate(388deg); }
+}
+@keyframes presence-comet {
+  to { stroke-dashoffset: -100; }
+}
+@keyframes presence-glint {
+  0%, 100% { opacity: 0.08; }
+  50% { opacity: 0.34; }
+}
+@keyframes presence-blink {
+  0%, 46%, 50%, 100% { transform: scaleY(1); }
+  48% { transform: scaleY(0.06); }
+}
+/* Now and then it looks around on its own. */
+@keyframes presence-glance {
+  0%, 38%, 50%, 78%, 90%, 100% { transform: translate(0, 0); }
+  41%, 47% { transform: translate(-6px, -2px); }
+  81%, 87% { transform: translate(6px, 2px); }
+}
+@keyframes presence-scan {
+  0%, 100% { transform: translate(-6px, -3px); }
+  50% { transform: translate(6px, -3px); }
+}
+@keyframes presence-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.85; }
+}
+@keyframes presence-talk {
+  from { transform: scaleY(0.3); }
+  to { transform: scaleY(1.6); }
+}
+@keyframes presence-ripple {
+  0% { transform: scale(0.85); opacity: 0.7; }
+  100% { transform: scale(1.75); opacity: 0; }
+}
+@keyframes presence-nod {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(7px); }
+  50% { transform: translateY(-2px); }
+  75% { transform: translateY(5px); }
+}
+@keyframes presence-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px) rotate(-4deg); }
+  40% { transform: translateX(7px) rotate(4deg); }
+  60% { transform: translateX(-5px) rotate(-2deg); }
+  80% { transform: translateX(3px); }
+}
+@keyframes presence-bounce {
+  0% { transform: scale(0.8) translateY(8px); }
+  55% { transform: scale(1.1) translateY(-8px); }
+  100% { transform: scale(1) translateY(0); }
+}
+@keyframes presence-tilt {
+  0%, 100% { transform: rotate(0); }
+  40% { transform: rotate(-13deg); }
+  70% { transform: rotate(5deg); }
+}
+@keyframes presence-perk {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.09) translateY(-4px); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .presence,
+  .presence * {
+    animation: none !important;
+  }
+  .presence-orbit-a { transform: rotate(28deg); }
+  .presence-orbit-b { transform: rotate(-28deg); }
+}
+
+/* Live microphone level inside the Stop button. */
+.mic-meter {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 9999px;
+  background: #6ee7b7;
+  box-shadow: 0 0 0 calc(var(--level) * 8px) rgb(110 231 183 / 0.35);
+  transition: box-shadow 0.08s linear;
+}
+
+/* Side panels sliding in. */
+.drawer-in {
+  animation: drawer-in 0.25s ease-out both;
+}
+@keyframes drawer-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Reply text and cards arriving on the stage. */
+.stage-in {
+  animation: stage-in 0.35s ease-out both;
+}
+@keyframes stage-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.field {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-ink);
+  padding: 0.4rem 0.6rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+.field:focus {
+  border-color: var(--color-glow);
+}
