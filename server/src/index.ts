@@ -261,7 +261,8 @@ function fireReminders() {
 
 // Bound to this machine only: the records here are private.
 app.listen(config.port, '127.0.0.1', () => {
-  console.log(hasScreen ? `Assistant ready. Open http://127.0.0.1:${config.port}` : `Assistant server on http://127.0.0.1:${config.port}${config.dev ? ' (development)' : ''}`);
+  const who = settings.read().name;
+  console.log(hasScreen ? `${who} is ready. Open http://127.0.0.1:${config.port}` : `${who}'s server is on http://127.0.0.1:${config.port}${config.dev ? ' (development)' : ''}`);
   console.log(`Model: ${settings.read().llm.model} at ${settings.read().llm.baseUrl}`);
   console.log(`Data:  ${config.dataDir}`);
   console.log(`Voice input: ${voiceReady() ? 'ready' : 'not set up (npm run setup)'}`);

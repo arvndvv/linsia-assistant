@@ -58,7 +58,7 @@ export class SettingsStore {
   read(): { name: string; setupDone: boolean; llm: LlmSettings } {
     const s = this.stored();
     return {
-      name: s?.name || 'Assistant',
+      name: s?.name || 'Linsia',
       // A settings file from before first-run setup existed counts as already set up.
       setupDone: s ? s.setupDone !== false : false,
       llm: {

@@ -1,4 +1,4 @@
-# Assistant
+# Linsia Assistant
 
 A private assistant that runs on your own computer. You tell it things or give it documents, it remembers them, and you ask later: when a warranty ends, where a paper is kept, what a bill said.
 
@@ -32,6 +32,19 @@ Model size: with 8 GB of memory use a 3B model. A 7B model takes about 5 GB by i
 
 `npm test` runs the tests (no model needed). `npm run typecheck` checks types. Both run on all three systems for every push (see `.github/workflows/ci.yml`).
 
+## Open it like any other app
+
+```
+npm run launcher       # adds it to your applications, under the name you gave it
+npm run launcher off   # remove it
+```
+
+Then summon it by name: Command+Space on macOS, the Windows key on Windows, type the name, press Return. It opens in a window of its own, and starts the server first if it is not already running. Drag it to the Dock or pin it to the taskbar to keep it there.
+
+For a key of its own on macOS: open the Shortcuts app, make a new shortcut with the single action "Open App", choose the assistant, then set a Keyboard Shortcut in the shortcut's details. On Windows, open the Start menu entry's Properties and fill in "Shortcut key".
+
+What this is not: it cannot replace Siri or Google Assistant. Those are built into the operating system and closed to other programs, so no third-party app can answer "Hey Siri" or take over the system assistant key. A name in Spotlight, a key of its own, and a window that is always a keystroke away is as close as a program like this gets.
+
 ## Keep it running
 
 `npm run dev` is for working on the code. For everyday use there are two other ways to run it:
@@ -44,10 +57,22 @@ npm run autostart off # undo that
 
 `autostart` registers a LaunchAgent on macOS, a hidden launcher in the Startup folder on Windows, and a systemd user service on Linux. No administrator rights, and `off` removes what it added. To give it its own window and icon, use the browser's "Install page as app" (Chrome) or "Add to Dock" (Safari).
 
-Notes:
+## After you change the code
 
-- After changing code, run `npm run autostart` again to rebuild and restart.
+`npm run dev` shows changes as you save them. The copy you use day to day runs a built
+copy of the screen instead, so it needs one command:
+
+```
+npm run reload
+```
+
+That rebuilds the screen and restarts the background server. Your records, settings and
+reminders are untouched. If you are not running it in the background at all, `reload` just
+rebuilds, and the new code is used the next time you open it.
+
+Notes:
 - `npm run dev` uses port 8788 for its server, so it can run alongside the background copy. Both use the same data.
+- `npm run launcher` on its own is enough for everyday use: opening it starts the server. `autostart` additionally keeps it running from login, which is what expiry notices need in order to arrive without opening the window.
 - If the project is on an external drive, the background copy can only run while the drive is plugged in. It retries every 30 seconds. For something meant to be always on, an internal disk is the better home (you can still keep `data/` elsewhere with `DATA_DIR`).
 - macOS may ask again for permissions (removable drive, Reminders), this time for `node` instead of your terminal.
 
@@ -61,7 +86,7 @@ Notes:
 - **Time and dates:** it knows the computer's current date, time and time zone, can tell the time elsewhere, and does date arithmetic in code (purchase date plus warranty period).
 - **Timed reminders:** "Remind me to call the plumber in 20 minutes" or "...tomorrow at 9". It shows a card with the exact time and a Cancel button. When the time comes you get a system notification and it says so on screen. On a Mac the reminder is also added to Apple's Reminders app (in a list named after the assistant), so it goes off when the assistant is closed and on your iPhone. macOS asks permission once; `SYSTEM_REMINDERS=off` in `.env` turns this off.
 - **Expiry reminders:** when it opens it tells you what expires within 30 days or expired in the last 14. While the server is running it also sends a system notification at 30, 7, 1 and 0 days before an expiry.
-- **Rename it:** click the name at the top left.
+- **Rename it:** click the name at the top left, or Settings. It is called Linsia unless you change it.
 - **Abilities:** top right. Everything it can do, generated from its skills, with example phrases to click, what is optional, and what it will not do.
 - **Memory:** top right. Browse, search, edit or delete anything it knows.
 - **History:** top right. Earlier exchanges in this session.

@@ -12,6 +12,7 @@ import { ReminderCard, formatDue } from './components/ReminderCard.tsx';
 import { Presence, type Gesture, type GestureName, type PresenceState } from './components/Presence.tsx';
 import { Typewriter } from './components/Typewriter.tsx';
 import { Viewer } from './components/Viewer.tsx';
+import { speak as sayIt } from './speech.ts';
 import { startConversation, type Conversation } from './voice.ts';
 
 /** One thing the user said and what the assistant answered. */
@@ -45,7 +46,7 @@ let nextId = 1;
 
 export function App() {
   const [settings, setSettings] = useState<Settings | null>(null);
-  const name = settings?.name ?? 'Assistant';
+  const name = settings?.name ?? 'Linsia';
   const [renaming, setRenaming] = useState(false);
   const [health, setHealth] = useState<Health | null>(null);
   const [exchanges, setExchanges] = useState<Exchange[]>([]); // newest first
@@ -240,11 +241,8 @@ export function App() {
 
   function sayAloud(text: string) {
     if (!voiceOut()) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
     // Small gap before listening again, so it does not hear its own last word.
-    u.onend = u.onerror = () => window.setTimeout(afterReply, 250);
-    window.speechSynthesis.speak(u);
+    sayIt(text, () => window.setTimeout(afterReply, 250));
     // If the voice never reports that it finished, carry on anyway.
     window.setTimeout(() => !window.speechSynthesis.speaking && afterReply(), 4_000 + text.length * 90);
   }

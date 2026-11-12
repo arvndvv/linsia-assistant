@@ -18,7 +18,29 @@ function offset(d: Date, timeZone?: string): string {
   return (part?.value ?? 'GMT').replace('GMT', 'UTC') || 'UTC';
 }
 
-/** "Thursday, 12 November 2026, 6:10 AM (Asia/Kolkata, UTC+05:30)" */
+/** The part of the day a person would name: "in the morning", "at night". */
+function partOfDay(hour: number): string {
+  if (hour < 5) return 'at night';
+  if (hour < 12) return 'in the morning';
+  if (hour < 17) return 'in the afternoon';
+  if (hour < 21) return 'in the evening';
+  return 'at night';
+}
+
+/** "6:10 in the morning" — the time as someone would say it out loud. */
+export function spokenTime(d: Date, timeZone: string = localZone()): string {
+  const [hour, minute] = new Intl.DateTimeFormat('en-GB', { hour: 'numeric', minute: '2-digit', hour12: false, timeZone }).format(d).split(':').map(Number);
+  if (minute === 0 && hour === 12) return 'midday';
+  if (minute === 0 && hour === 0) return 'midnight';
+  return `${clock(d, timeZone).replace(/\s?[AP]M$/i, '')} ${partOfDay(hour)}`;
+}
+
+/** "Thursday 12 November 2026" */
+export function spokenDate(d: Date, timeZone: string = localZone()): string {
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone }).replace(',', '');
+}
+
+/** "Thursday, 12 November 2026, 6:10 AM (Asia/Kolkata, UTC+05:30)" — the exact version, for when precision matters. */
 export function describeMoment(d: Date, timeZone: string = localZone()): string {
   const day = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone });
   return `${day}, ${clock(d, timeZone)} (${timeZone}, ${offset(d, timeZone)})`;

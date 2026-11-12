@@ -4,16 +4,22 @@ import { api } from '../api.ts';
 import { ModelSetup } from './ModelSetup.tsx';
 import { Presence } from './Presence.tsx';
 
-/** First run: give it a name, then get a model working. Can be skipped and finished later in Settings. */
+/**
+ * First run: say hello under the name it already has, offer another, then get a model working.
+ * Nothing here is compulsory; it can all be changed later in Settings.
+ */
 export function Onboarding({ settings, onChange, onDone }: { settings: Settings; onChange: (s: Settings) => void; onDone: (s: Settings) => void }) {
   const [step, setStep] = useState<'name' | 'model'>('name');
-  const [name, setName] = useState(settings.name === 'Assistant' ? '' : settings.name);
+  const [renaming, setRenaming] = useState(false);
+  const [name, setName] = useState('');
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
 
-  async function saveName() {
+  /** Keep the name it came with, unless the user typed another. */
+  async function next() {
+    const chosen = name.trim();
     try {
-      onChange(await api.saveSettings({ name: name.trim() || 'Assistant' }));
+      if (chosen && chosen !== settings.name) onChange(await api.saveSettings({ name: chosen }));
       setStep('model');
       setError('');
     } catch (e) {
@@ -37,14 +43,35 @@ export function Onboarding({ settings, onChange, onDone }: { settings: Settings;
         {step === 'name' ? (
           <div className="stage-in mt-6 w-full space-y-5">
             <div>
-              <h1 className="text-2xl">Hello. I am your assistant.</h1>
-              <p className="mt-2 text-soft">I remember things for you: warranties, insurance, where papers are kept, and when things run out. What would you like to call me?</p>
+              <h1 className="text-2xl">Hello. I'm {settings.name}.</h1>
+              <p className="mt-2 text-soft">I remember things for you: warranties, insurance, where papers are kept, and when things run out.</p>
             </div>
-            <input autoFocus className="field text-center text-lg" maxLength={40} placeholder="Assistant" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && void saveName()} />
-            <button onClick={() => void saveName()} className="rounded-lg bg-glow px-5 py-2 font-medium text-ink">
-              Continue
-            </button>
-            <p className="text-xs text-soft">You can change the name later.</p>
+
+            {renaming ? (
+              <div className="space-y-2">
+                <input
+                  autoFocus
+                  className="field text-center text-lg"
+                  maxLength={40}
+                  placeholder={settings.name}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && void next()}
+                />
+                <p className="text-xs text-soft">Leave it empty to stay {settings.name}.</p>
+              </div>
+            ) : (
+              <button onClick={() => setRenaming(true)} className="text-sm text-glow hover:underline">
+                Call me something else
+              </button>
+            )}
+
+            <div>
+              <button onClick={() => void next()} className="rounded-lg bg-glow px-5 py-2 font-medium text-ink">
+                {renaming && name.trim() && name.trim() !== settings.name ? `Call me ${name.trim()}` : 'Continue'}
+              </button>
+              <p className="mt-2 text-xs text-soft">You can change the name later in Settings.</p>
+            </div>
           </div>
         ) : (
           <div className="stage-in mt-6 w-full space-y-5">

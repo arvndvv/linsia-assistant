@@ -11,7 +11,7 @@ import path from 'node:path';
 import { recommendModels, validModelName } from '../src/models.ts';
 import { Reminders } from '../src/reminders.ts';
 import { SettingsStore } from '../src/settings.ts';
-import { addToDate, describeWhen, findZone, parseClock } from '../src/time.ts';
+import { addToDate, describeWhen, findZone, parseClock, spokenTime } from '../src/time.ts';
 import type { EntryFields } from '../src/types.ts';
 
 const TODAY = '2026-11-11';
@@ -205,6 +205,14 @@ test('clock helpers: times, month ends, places', () => {
   assert.equal(findZone('Europe/London'), 'Europe/London');
   assert.equal(findZone('Atlantis'), null);
 
+  const spoken = (h: number, m: number) => spokenTime(new Date(2026, 10, 12, h, m), 'Asia/Kolkata');
+  assert.equal(spoken(6, 10), '6:10 in the morning');
+  assert.equal(spoken(13, 30), '1:30 in the afternoon');
+  assert.equal(spoken(18, 45), '6:45 in the evening');
+  assert.equal(spoken(23, 5), '11:05 at night');
+  assert.equal(spoken(12, 0), 'midday');
+  assert.equal(spoken(0, 0), 'midnight');
+
   assert.equal(describeWhen(new Date(2026, 10, 12, 17, 30), NOW), 'today at 5:30 PM');
   assert.equal(describeWhen(new Date(2026, 10, 13, 9, 0), NOW), 'tomorrow at 9:00 AM');
 });
@@ -223,7 +231,7 @@ test('the model is told the real time, and only gets the tools the message calls
 
   const llm = scripted([say('It is 6:10 AM.')]);
   await runTurn({ message: 'what time is it', history: [], attachments: [] }, { llm, memory: m, reminders: newReminders(), name: 'A', now: () => NOW });
-  assert.match(llm.seen[0][0].content ?? '', /Thursday, 12 November 2026, 6:10 AM/);
+  assert.match(llm.seen[0][0].content ?? '', /6:10 in the morning, on Thursday 12 November 2026/);
 
   assert.deepEqual(await tools('hello there'), ['remember', 'recall', 'list_expiring']);
   assert.ok((await tools('what time is it in Tokyo')).includes('time_in'));
@@ -329,7 +337,7 @@ test('settings: first run is detected, values are checked, the key stays on the 
   const store = new SettingsStore(dir);
 
   assert.equal(store.public().setupDone, false); // nothing saved yet
-  assert.equal(store.public().name, 'Assistant');
+  assert.equal(store.public().name, 'Linsia'); // the name it has before anyone chooses one
 
   assert.equal(store.write({ name: 'Draft' }).setupDone, false); // naming it does not end setup
 

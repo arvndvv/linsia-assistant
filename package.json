@@ -1,5 +1,5 @@
 {
-  "name": "assistant",
+  "name": "Linsia-Assistant",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -7,15 +7,17 @@
     "dev": "concurrently -n server,web -c blue,green \"npm:dev:server\" \"npm:dev:web\"",
     "dev:server": "tsx watch server/src/index.ts --dev",
     "dev:web": "vite",
-    "typecheck": "tsc --noEmit",
-    "test": "tsx --test server/test/assistant.test.ts",
+    "start": "vite build && tsx server/src/index.ts",
+    "reload": "node scripts/reload.mjs",
+    "launcher": "node scripts/launcher.mjs",
+    "autostart": "node scripts/autostart.mjs",
+    "setup": "node scripts/setup.mjs",
     "setup:voice": "node scripts/setup.mjs voice",
     "setup:ocr": "node scripts/setup.mjs ocr",
-    "setup": "node scripts/setup.mjs",
-    "build": "vite build",
     "setup:reminders": "node scripts/setup.mjs reminders",
-    "start": "vite build && tsx server/src/index.ts",
-    "autostart": "node scripts/autostart.mjs"
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test server/test/assistant.test.ts"
   },
   "dependencies": {
     "better-sqlite3": "^12.11.1",

@@ -1,5 +1,5 @@
 import { isIsoDate } from '../memory.ts';
-import { addToDate, daysBetween, describeMoment, findZone, localDate, longDate } from '../time.ts';
+import { addToDate, daysBetween, findZone, localDate, longDate, spokenDate, spokenTime } from '../time.ts';
 import type { Skill, Tool } from './types.ts';
 
 const whole = (v: unknown): number => (Number.isFinite(Number(v)) ? Math.round(Number(v)) : 0);
@@ -17,7 +17,7 @@ const timeIn: Tool = {
     const place = typeof args.place === 'string' ? args.place : '';
     const zone = findZone(place);
     if (!zone) return { forModel: `No time zone found for "${place}". Try the nearest major city, or say you cannot tell.` };
-    return { forModel: `In ${place} it is ${describeMoment(ctx.now, zone)}.` };
+    return { forModel: `In ${place} it is ${spokenTime(ctx.now, zone)}, on ${spokenDate(ctx.now, zone)}.` };
   },
 };
 
@@ -44,14 +44,15 @@ const dateMath: Tool = {
       const until = args.until.trim();
       if (!isIsoDate(until)) return { forModel: `"${until}" is not a valid YYYY-MM-DD date.` };
       const n = daysBetween(date, until);
-      return { forModel: n >= 0 ? `${n} days from ${date} until ${until}.` : `${until} was ${-n} days before ${date}.` };
+      return { forModel: n >= 0 ? `That is ${n} days away.` : `That was ${-n} days ago.` };
     }
 
     const add = { years: whole(args.add_years), months: whole(args.add_months), days: whole(args.add_days) };
     if (!add.years && !add.months && !add.days) return { forModel: `${date} is ${longDate(date)}.` };
+
     if (Math.abs(add.years) > 200 || Math.abs(add.months) > 2400 || Math.abs(add.days) > 73_000) return { forModel: 'That is too far away to work out.' };
     const result = addToDate(date, add);
-    return { forModel: `Result: ${result} (${longDate(result)}).` };
+    return { forModel: `That comes to ${longDate(result)}. In tool arguments it is ${result}.` };
   },
 };
 
@@ -62,7 +63,7 @@ export const clockSkill: Skill = {
   examples: ['What time is it in Tokyo?', 'How many days until 14 March 2027?', 'Bought on 3 January 2026 with a two year warranty. When does it end?'],
   match: /\btime\b|\bo'?clock\b|\btimezone|\btime zone|\bdate\b|\bday\b|\bdays\b|\bweeks?\b|\bmonths?\b|\byears?\b|\buntil\b|\bfrom now\b|\bago\b|\bhow long\b|\bwarranty\b|\bvalid\b|\bexpir/i,
   instructions: `Dates and times:
-- The user's current local date and time are given under "Right now". Answer "what time is it" or "what is the date" straight from there.
+- The current time and date are at the top of these instructions. Answer "what time is it" with just the time, in the words given there.
 - For the time anywhere else, call "time_in".
 - For any date arithmetic (a purchase date plus a warranty period, days until something), call "date_math". Never do it in your head.`,
   tools: [timeIn, dateMath],

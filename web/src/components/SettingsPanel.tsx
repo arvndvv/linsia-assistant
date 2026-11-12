@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Settings } from '../../../server/src/types.ts';
 import { api } from '../api.ts';
+import { isFeminine, listVoices, savedVoiceName, saveVoiceName, speak, whenVoicesReady } from '../speech.ts';
 import { Drawer } from './Drawer.tsx';
 import { ModelSetup } from './ModelSetup.tsx';
 
@@ -8,6 +9,11 @@ import { ModelSetup } from './ModelSetup.tsx';
 export function SettingsPanel({ settings, onChange, onClose }: { settings: Settings; onChange: (s: Settings) => void; onClose: () => void }) {
   const [name, setName] = useState(settings.name);
   const [note, setNote] = useState('');
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>(listVoices());
+  const [voice, setVoice] = useState(savedVoiceName());
+
+  // Browsers hand over the list of voices a moment after the page loads.
+  useEffect(() => whenVoicesReady(setVoices), []);
 
   async function saveName() {
     const next = name.trim();
@@ -34,6 +40,38 @@ export function SettingsPanel({ settings, onChange, onClose }: { settings: Setti
             </button>
           </div>
           {note && <p className="mt-1 text-xs text-soft">{note}</p>}
+        </section>
+
+        <section>
+          <h3 className={heading}>Voice</h3>
+          {voices.length === 0 ? (
+            <p className="text-sm text-soft">This browser offers no voices, so replies cannot be read aloud.</p>
+          ) : (
+            <>
+              <div className="flex gap-2">
+                <select
+                  className="field"
+                  value={voice}
+                  onChange={(e) => {
+                    setVoice(e.target.value);
+                    saveVoiceName(e.target.value);
+                  }}
+                >
+                  <option value="">Suggested ({voices[0].name})</option>
+                  {voices.map((v) => (
+                    <option key={v.name} value={v.name}>
+                      {v.name} · {v.lang}
+                      {isFeminine(v) ? ' · feminine' : ''}
+                    </option>
+                  ))}
+                </select>
+                <button onClick={() => speak(`Hello, I'm ${settings.name}.`, () => {})} className="rounded-lg border border-line px-3 py-1.5 text-sm text-soft hover:border-glow hover:text-white">
+                  Hear it
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-soft">Kept for this browser. Which voices exist depends on the computer; macOS and Windows both offer more under their own speech settings.</p>
+            </>
+          )}
         </section>
 
         <section>
