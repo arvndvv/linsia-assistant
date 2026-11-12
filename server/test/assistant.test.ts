@@ -205,7 +205,9 @@ test('clock helpers: times, month ends, places', () => {
   assert.equal(findZone('Europe/London'), 'Europe/London');
   assert.equal(findZone('Atlantis'), null);
 
-  const spoken = (h: number, m: number) => spokenTime(new Date(2026, 10, 12, h, m), 'Asia/Kolkata');
+  // The date is built in this computer's own time zone, so it must be read back in that zone
+  // too. Naming one here would make the test pass only where that zone happens to be set.
+  const spoken = (h: number, m: number) => spokenTime(new Date(2026, 10, 12, h, m));
   assert.equal(spoken(6, 10), '6:10 in the morning');
   assert.equal(spoken(13, 30), '1:30 in the afternoon');
   assert.equal(spoken(18, 45), '6:45 in the evening');
